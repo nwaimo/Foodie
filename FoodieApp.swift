@@ -5,6 +5,7 @@
 //
 
 import SwiftUI
+import SwiftData
 
 @main
 struct FoodieApp: App {
@@ -15,5 +16,6 @@ struct FoodieApp: App {
             ContentView()
                 .environmentObject(dataManager)
         }
+        .modelContainer(for: ConsumptionItem.self)
     }
 }

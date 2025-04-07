@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import SwiftData
 
 enum MealCategory: String, CaseIterable {
     case breakfast
@@ -14,16 +15,35 @@ enum MealCategory: String, CaseIterable {
     case drink
 }
 
-struct ConsumptionItem: Identifiable, Codable {
-    let id: UUID
-    let category: MealCategory
-    let calories: Int
-    let timestamp: Date
-    let waterAmount: Double? // in liters
+@Model
+final class ConsumptionItem: Identifiable {
+    var id: UUID
+    var category: String // Will store the raw value of MealCategory
+    var calories: Int
+    var timestamp: Date
+    var waterAmount: Double? // in liters
+    
+    // Computed property to convert string to MealCategory
+    var mealCategory: MealCategory {
+        get {
+            return MealCategory(rawValue: category) ?? .snack
+        }
+        set {
+            category = newValue.rawValue
+        }
+    }
+    
+    init(id: UUID = UUID(), category: MealCategory, calories: Int, timestamp: Date, waterAmount: Double? = nil) {
+        self.id = id
+        self.category = category.rawValue
+        self.calories = calories
+        self.timestamp = timestamp
+        self.waterAmount = waterAmount
+    }
 }
 
 // Extension for icon representation
-extension MealCategory: Codable {
+extension MealCategory {
     var icon: String {
         switch self {
         case .breakfast: return "sunrise.fill"

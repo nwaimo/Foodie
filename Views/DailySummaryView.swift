@@ -263,12 +263,12 @@ struct ConsumptionHistoryView: View {
             } else {
                 ForEach(items.sorted(by: { $0.timestamp > $1.timestamp })) { item in
                     HStack {
-                        Image(systemName: item.category.icon)
-                            .foregroundColor(item.category.color)
+                        Image(systemName: item.mealCategory.icon)
+                            .foregroundColor(item.mealCategory.color)
                             .frame(width: 24)
                         
                         VStack(alignment: .leading) {
-                            Text(item.category.rawValue.capitalized)
+                            Text(item.mealCategory.rawValue.capitalized)
                                 .font(.subheadline)
                                 .fontWeight(.medium)
                             

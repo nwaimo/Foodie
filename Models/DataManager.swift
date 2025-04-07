@@ -7,7 +7,9 @@
 import Foundation
 import SwiftUI
 import UserNotifications
+import SwiftData
 
+@MainActor
 class DataManager: ObservableObject {
     static let shared = DataManager()
     
@@ -18,37 +20,38 @@ class DataManager: ObservableObject {
     @Published var consumptionHistory: [ConsumptionItem] = []
     
     private let calendar = Calendar.current
-    private let queue = DispatchQueue(label: "com.foodie.dataqueue")
-    private let database = DatabaseManager.shared
+    private let database = SwiftDataManager.shared
     
     private init() {
-        // Load saved values from database
-        if let waterTargetStr = database.getSetting(key: "WaterTarget"),
-           let waterTargetValue = Double(waterTargetStr) {
-            waterTarget = waterTargetValue
+        Task {
+            // Load saved values from database
+            if let waterTargetStr = database.getSetting(key: "WaterTarget"),
+               let waterTargetValue = Double(waterTargetStr) {
+                waterTarget = waterTargetValue
+            }
+            
+            if let calorieTargetStr = database.getSetting(key: "CalorieTarget"),
+               let calorieTargetValue = Int(calorieTargetStr) {
+                calorieTarget = calorieTargetValue
+            }
+            
+            // Load consumption history from database
+            await loadConsumptionHistory()
+            
+            // Calculate today's totals
+            calculateTodayTotals()
+            
+            // Setup midnight reset
+            setupMidnightReset()
+            
+            // Request notification permissions
+            requestNotificationPermissions()
         }
-        
-        if let calorieTargetStr = database.getSetting(key: "CalorieTarget"),
-           let calorieTargetValue = Int(calorieTargetStr) {
-            calorieTarget = calorieTargetValue
-        }
-        
-        // Load consumption history from database
-        loadConsumptionHistory()
-        
-        // Calculate today's totals
-        calculateTodayTotals()
-        
-        // Setup midnight reset
-        setupMidnightReset()
-        
-        // Request notification permissions
-        requestNotificationPermissions()
     }
     
     // MARK: - Private Helper Methods
     
-    private func loadConsumptionHistory() {
+    private func loadConsumptionHistory() async {
         consumptionHistory = database.getAllConsumptionItems()
     }
     
@@ -117,25 +120,21 @@ class DataManager: ObservableObject {
     }
     
     func addConsumption(_ item: ConsumptionItem) {
-        queue.async {
-            // Save to database
-            self.database.saveConsumptionItem(item)
-            
-            DispatchQueue.main.async {
-                // Update in-memory collection
-                self.consumptionHistory.append(item)
-                
-                // Update daily totals
-                if let water = item.waterAmount {
-                    self.dailyWater += water
-                } else {
-                    self.dailyCalories += item.calories
-                }
-                
-                // Check if targets reached and send notification if needed
-                self.checkTargetsAndNotify()
-            }
+        // Save to database
+        database.saveConsumptionItem(item)
+        
+        // Update in-memory collection
+        consumptionHistory.append(item)
+        
+        // Update daily totals
+        if let water = item.waterAmount {
+            dailyWater += water
+        } else {
+            dailyCalories += item.calories
         }
+        
+        // Check if targets reached and send notification if needed
+        checkTargetsAndNotify()
     }
     
     func validateIntake(calories: Int? = nil, water: Double? = nil) -> IntakeStatus {
@@ -177,7 +176,9 @@ class DataManager: ObservableObject {
         dailyWater = 0
         
         // Reload consumption history to reflect changes
-        loadConsumptionHistory()
+        Task {
+            await loadConsumptionHistory()
+        }
     }
     
     func getConsumptionItems(for date: Date) -> [ConsumptionItem] {

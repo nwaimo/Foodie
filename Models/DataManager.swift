@@ -8,7 +8,6 @@ import Foundation
 import SwiftUI
 import UserNotifications
 import SwiftData
-import WidgetKit
 
 @MainActor
 class DataManager: ObservableObject {
@@ -110,24 +109,14 @@ class DataManager: ObservableObject {
     
     // MARK: - Public Methods
     
-    func refreshWidgets() {
-        // Refresh all widget timelines
-        WidgetCenter.shared.reloadAllTimelines()
-        
-        // Also post a notification for any observers
-        NotificationCenter.default.post(name: NSNotification.Name("RefreshWidgets"), object: nil)
-    }
-    
     func updateWaterTarget(_ newValue: Double) {
         waterTarget = newValue
         database.setSetting(key: "WaterTarget", value: String(newValue))
-        refreshWidgets()
     }
     
     func updateCalorieTarget(_ newValue: Int) {
         calorieTarget = newValue
         database.setSetting(key: "CalorieTarget", value: String(newValue))
-        refreshWidgets()
     }
     
     func addConsumption(_ item: ConsumptionItem) {
@@ -146,9 +135,6 @@ class DataManager: ObservableObject {
         
         // Check if targets reached and send notification if needed
         checkTargetsAndNotify()
-        
-        // Refresh widgets with updated data
-        refreshWidgets()
     }
     
     func validateIntake(calories: Int? = nil, water: Double? = nil) -> IntakeStatus {
@@ -192,9 +178,6 @@ class DataManager: ObservableObject {
         // Reload consumption history to reflect changes
         Task {
             await loadConsumptionHistory()
-            
-            // Refresh widgets with updated data
-            refreshWidgets()
         }
     }
     
@@ -219,9 +202,6 @@ class DataManager: ObservableObject {
                     dailyCalories -= item.calories
                 }
             }
-            
-            // Refresh widgets with updated data
-            refreshWidgets()
         }
     }
     

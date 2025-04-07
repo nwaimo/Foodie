@@ -188,8 +188,10 @@ struct AddConsumptionView: View {
             addedItemDescription = "Added \(newCalories) calories (\(selectedCategory.rawValue))"
         }
         
+        // Dismiss keyboard first
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+        
         dataManager.addConsumption(item)
-        clearForm()
         
         // Show success alert
         showAddedAlert = true
@@ -197,6 +199,11 @@ struct AddConsumptionView: View {
         // Provide haptic feedback
         let generator = UINotificationFeedbackGenerator()
         generator.notificationOccurred(.success)
+        
+        // Clear form after a short delay to prevent keyboard issues
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            clearForm()
+        }
     }
     
     private func getAlertContent(for type: AlertType) -> (String, String) {

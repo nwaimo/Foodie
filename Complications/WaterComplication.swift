@@ -1,8 +1,13 @@
-import ClockKit
 import SwiftUI
+import ClockKit
+
+// This file is kept for backward compatibility
+// The widget functionality has been moved to the Widgets folder
+// See Widgets/FoodieWidget.swift and Widgets/FoodieWidgetBundle.swift
 
 class WaterComplication: NSObject, CLKComplicationDataSource {
     func getCurrentTimelineEntry(for complication: CLKComplication, withHandler handler: @escaping (CLKComplicationTimelineEntry?) -> Void) {
+        // For backward compatibility, we'll still provide the water complication
         guard let template = createTemplate(for: complication) else {
             handler(nil)
             return

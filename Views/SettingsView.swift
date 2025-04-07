@@ -40,8 +40,8 @@ struct SettingsView: View {
                     Text("5.0L")
                         .font(.caption)
                 }
-                .onChange(of: waterTarget) { newValue in
-                    dataManager.updateWaterTarget(newValue)
+                .onChange(of: waterTarget) { 
+                    dataManager.updateWaterTarget(waterTarget)
                 }
                 
                 HStack {
@@ -63,17 +63,20 @@ struct SettingsView: View {
                     Text("4000")
                         .font(.caption)
                 }
-                .onChange(of: calorieTarget) { newValue in
-                    dataManager.updateCalorieTarget(newValue)
+                .onChange(of: calorieTarget) { 
+                    dataManager.updateCalorieTarget(calorieTarget)
                 }
             }
             
             Section(header: Text("Reminders")) {
                 Toggle("Enable Reminders", isOn: $notificationsEnabled)
+                    .onChange(of: notificationsEnabled) { 
+                        scheduleReminder()
+                    }
                 
                 if notificationsEnabled {
                     DatePicker("Reminder Time", selection: $reminderTime, displayedComponents: .hourAndMinute)
-                        .onChange(of: reminderTime) { _ in
+                        .onChange(of: reminderTime) { 
                             scheduleReminder()
                         }
                 }
@@ -129,6 +132,9 @@ struct SettingsView: View {
             // Refresh values when view appears
             waterTarget = dataManager.waterTarget
             calorieTarget = dataManager.calorieTarget
+            
+            // Schedule reminder when view appears
+            scheduleReminder()
         }
     }
     

@@ -13,6 +13,8 @@ struct AddConsumptionView: View {
     @State private var waterAmount: String = ""
     @State private var showingConfirmation = false
     @State private var showError = false
+    @State private var showAddedAlert = false
+    @State private var addedItemDescription = ""
     @State private var isShowingNumberPad = false
     @State private var selectedValue: Double = 0
     @State private var calorieStatus: CalorieStatus = .normal
@@ -126,6 +128,11 @@ struct AddConsumptionView: View {
                 dismissButton: .default(Text("OK"))
             )
         }
+        .alert("Item Added Successfully", isPresented: $showAddedAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(addedItemDescription)
+        }
         .toolbar {
             ToolbarItem(placement: .keyboard) {
                 Button("Done") {
@@ -174,8 +181,18 @@ struct AddConsumptionView: View {
             waterAmount: selectedCategory == .drink ? newWater : nil
         )
         
+        // Create description for alert
+        if selectedCategory == .drink {
+            addedItemDescription = "Added \(newWater)L of water"
+        } else {
+            addedItemDescription = "Added \(newCalories) calories (\(selectedCategory.rawValue))"
+        }
+        
         dataManager.addConsumption(item)
         clearForm()
+        
+        // Show success alert
+        showAddedAlert = true
         
         // Provide haptic feedback
         let generator = UINotificationFeedbackGenerator()
